@@ -80,15 +80,17 @@ for r in range(len(SRTR)):
         happair_id_total[ID] = 0
     happair_id_total[ID] += float(happair_freq)
 
-    happair = SRTR.iloc[r,2] + "+" + SRTR.iloc[r,3]    # Columns HAPPAIR_1 and HAPPAIR_2
 
 # Renormalization loop
 for r in range(len(SRTR)):
 
     ID = SRTR.iloc[r,0]        # PX_ID column
     FREQ = SRTR.iloc[r,4]      # FREQ column
+    HAPPAIR_1 = SRTR.iloc[r,2] # HAPPAIR_1 column
+    HAPPAIR_2 = SRTR.iloc[r,3] # HAPPAIR_2 column
 
     happair_freq = float(FREQ)
+    happair = HAPPAIR_1 + "+" + HAPPAIR_2
 
     if ID not in happair_probs:
         happair_probs[ID] = list()
