@@ -19,13 +19,13 @@ def weighted_choice(seq, weights):
 
 
 # Open up file
-freqs_dir = 'NEMO-python/ACBDRBXDRB1DQA1DQB1DPA1DPB1'
+freqs_dir = 'NEMO-python/ACBDRBXDRB1DQA1DQB1DPA1DPB1_GLOBAL'
 
-pop = ['AFA','API','CAU','HIS','NAM']
+pop = ['AFA','API','CAU','HIS','NAM','UNK']
 
 SRTR = pd.DataFrame()
 for pops in pop:
-    srtr_filename = "./" + freqs_dir + "/impute_srtr." + pops + ".csv.gz"
+    srtr_filename = "./" + freqs_dir + "/impute.srtr." + pops + ".csv.gz"
     
     SRTR_file = pd.read_csv(srtr_filename, delimiter=',',header=None, compression='gzip')
     SRTR = pd.concat([SRTR,SRTR_file], ignore_index=True)
@@ -108,6 +108,13 @@ for x in id_total:
     id_recip = "R" + id_total[x]
     id_donor = "D" + id_total[x]
 
+    if id_recip not in happair_hla:
+        print("Missing ID from Imputation Output: " + id_recip)
+        continue
+    if id_donor not in happair_hla:
+        print("Missing ID from Donor Output: " + id_donor)
+        continue
+
     haplist = happair_hla[id_recip]
     problist = happair_probs[id_recip]
 
@@ -136,6 +143,12 @@ PIRCHE = pd.DataFrame(columns=['PX_ID','HAPPAIRS'])
 for i in id_total:
     id_recip = 'R' + id_total[i]
     id_donor = 'D' + id_total[i]
+
+    if id_recip not in happair_hla:
+        continue
+    if id_donor not in happair_hla:
+        continue
+    
     blank_data = [['','']]
     comma_df = pd.DataFrame(blank_data, columns=['PX_ID','HAPPAIRS'])
 
