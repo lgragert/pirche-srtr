@@ -21,36 +21,43 @@ PIRCHE_clean.to_csv('clean_priche_100.csv', index=False)
 
 
 
-# Open up clean CSV and drop the D and R character from PX_ID
+# Open up clean CSV to add population information
 clean_file = pd.read_csv('clean_priche_100.csv', sep=',')
-PIRCHE_ids = clean_file['Patient/Donor_ID'].str.split('[DR]', expand=True)
-PIRCHE_ids.columns = ['index','PX_ID']
-print(PIRCHE_ids.head())
-id_list = pd.Series(PIRCHE_ids['PX_ID']).drop_duplicates().to_list()
+clean_file.rename(columns={'Patient/Donor_ID': 'PX_ID'}, inplace=True)
+PIRCHE_ids = clean_file['PX_ID']
+id_index = clean_file['PX_ID'].str.split("[DR]", expand=True)
+id_list = pd.Series(id_index[1]).drop_duplicates().to_list()
 
 
-# Merge Ethnicity Data column to clean data file
+# Merge Population Data column to clean data file
 directory = '../kidney-outcomes-sfvt/'
 grffail_filename = directory + 'SRTR_AA_MM_matrix_grffail_1.txt'
 grffail = pd.read_csv(grffail_filename, sep='\t')
 
-# Only need CAN_RACE column with specific PX_ID's
-can_race = grffail[["PX_ID", "CAN_RACE"]]
-can_race.PX_ID = can_race.PX_ID.astype(str)
-
-can_race = can_race[(can_race['PX_ID'].isin(id_list))]
-print(can_race.head())
+# Only need CAN_RACE and DON_RACE column with specific PX_ID's
+pop_info = grffail[["PX_ID", "CAN_RACE", "DON_RACE"]]
+pop_info.PX_ID = pop_info.PX_ID.astype(str)
 
 
-# Merges the PIRCHE PX_ID with the grffail PX_ID column
-pirche_pop = pd.merge(PIRCHE_ids, can_race, how='outer', on='PX_ID')
-pirche_pop.drop(columns=['PX_ID','index'])
-print(pirche_pop.head())
+can_pop = pop_info[(pop_info['PX_ID'].isin(id_list))]
+can_pop = can_pop.drop(columns=['DON_RACE'])
+can_pop.rename(columns={'CAN_RACE': 'RACE'}, inplace=True)
+can_pop['PX_ID'] = "R" + can_pop['PX_ID']
+don_pop = pop_info[(pop_info['PX_ID'].isin(id_list))]
+don_pop = don_pop.drop(columns=['CAN_RACE'])
+don_pop.rename(columns={'DON_RACE': 'RACE'}, inplace=True)
+don_pop['PX_ID'] = "D" + don_pop['PX_ID']
 
-clean_file.insert(1, 'CAN_RACE', pirche_pop.loc[:, 'CAN_RACE'])
+
+merge_pop = pd.concat([can_pop, don_pop], ignore_index=True)
+print(merge_pop.head())
+
+PIRCHE_pop = pd.merge(PIRCHE_ids, merge_pop, how='outer', on='PX_ID')
+PIRCHE_pop.drop(columns=['PX_ID'])
+print(PIRCHE_pop.head())
+
+clean_file.insert(1, 'RACE', PIRCHE_pop.loc[:, 'RACE'])
 print(clean_file.head())
 
-
-# Output new CSV, but has population information in it now
 clean_file.to_csv('clean_pirche100_pops.csv', index=False)
 
