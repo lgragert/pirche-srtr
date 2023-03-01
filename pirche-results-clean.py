@@ -1,9 +1,13 @@
 # Clean PIRCHE CSV file
 
 import pandas as pd
+import sys
+
+pirche_output_file = sys.argv[1]
 
 # Parse CSV from PIRCHE
-pirche_file = pd.read_csv('pirche_result_SRTR_100.csv', sep=',', header=None)
+
+pirche_file = pd.read_csv(pirche_output_file, sep=',', header=None)
 
 # Remove header row
 pirche_file.drop(index=pirche_file.index[0], axis=0, inplace=True)
@@ -17,12 +21,12 @@ PIRCHE = PIRCHE_rows.dropna(axis='columns',thresh=2)
 PIRCHE_clean = PIRCHE.reset_index(drop=True)
 
 # Output new CSV
-PIRCHE_clean.to_csv('clean_priche_100.csv', index=False)
+PIRCHE_clean.to_csv('clean_pirche_100.csv', index=False)
 
 
 
 # Open up clean CSV to add population information
-clean_file = pd.read_csv('clean_priche_100.csv', sep=',')
+clean_file = pd.read_csv('clean_pirche_100.csv', sep=',')
 clean_file.rename(columns={'Patient/Donor_ID': 'PX_ID'}, inplace=True)
 PIRCHE_ids = clean_file['PX_ID']
 id_index = clean_file['PX_ID'].str.split("[DR]", expand=True)

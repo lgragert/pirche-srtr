@@ -3,6 +3,13 @@
 
 import random
 import pandas as pd
+import sys
+
+# ../NEMO-python/ACBDRBXDRB1DQA1DQB1DPA1DPB1_GLOBAL/'
+freqs_dir = sys.argv[1]
+
+# fix random seed
+random.seed("20230301")
 
 
 # Choose one haplotype pair for patient and one pair for donor independently
@@ -19,9 +26,8 @@ def weighted_choice(seq, weights):
 
 
 # Open up file
-freqs_dir = 'NEMO-python/ACBDRBXDRB1DQA1DQB1DPA1DPB1_GLOBAL'
-
-pop = ['AFA','API','CAU','HIS','NAM','UNK']
+pop = ['NAM']
+# pop = ['AFA','API','CAU','HIS','NAM','UNK']
 
 SRTR = pd.DataFrame()
 for pops in pop:
@@ -30,7 +36,7 @@ for pops in pop:
     SRTR_file = pd.read_csv(srtr_filename, delimiter=',',header=None, compression='gzip')
     SRTR = pd.concat([SRTR,SRTR_file], ignore_index=True)
 
-# Subset the columns with respecitive terms
+# Subset the columns with respective terms
 col_names = ["PX_ID", "RANK", "HAPPAIR_1", "HAPPAIR_2", "FREQ"]
 SRTR.columns = col_names
 
@@ -72,8 +78,8 @@ happair_probs = {}
 happair_hla = {}
 for r in range(len(SRTR)):
 
-    ID = SRTR.iloc[r,0]        # PX_ID column
-    FREQ = SRTR.iloc[r,4]      # FREQ column
+    ID = SRTR.loc[r,"PX_ID"]        # PX_ID column
+    FREQ = SRTR.loc[r,"FREQ"]      # FREQ column
     happair_freq = float(FREQ)
 
     if ID not in happair_id_total:
@@ -84,10 +90,10 @@ for r in range(len(SRTR)):
 # Renormalization loop
 for r in range(len(SRTR)):
 
-    ID = SRTR.iloc[r,0]        # PX_ID column
-    FREQ = SRTR.iloc[r,4]      # FREQ column
-    HAPPAIR_1 = SRTR.iloc[r,2] # HAPPAIR_1 column
-    HAPPAIR_2 = SRTR.iloc[r,3] # HAPPAIR_2 column
+    ID = SRTR.loc[r,"PX_ID"]        # PX_ID column
+    FREQ = SRTR.loc[r,"FREQ"]      # FREQ column
+    HAPPAIR_1 = SRTR.loc[r,"HAPPAIR_1"] # HAPPAIR_1 column
+    HAPPAIR_2 = SRTR.loc[r,"HAPPAIR_2"] # HAPPAIR_2 column
 
     happair_freq = float(FREQ)
     happair = HAPPAIR_1 + "+" + HAPPAIR_2
@@ -161,18 +167,26 @@ for i in id_total:
 
 # Separate haplotypes
 PIRCHE[['HAPPAIR_1', 'HAPPAIR_2']] = PIRCHE.HAPPAIRS.str.split('+', expand=True)
-PIRCHE[["A_1", "C_1", "B_1", "DRB3_1", "DRB1_1", "DQA1_1", "DQB1_1", "DPA1_1", "DPB1_1"]] = PIRCHE.HAPPAIR_1.str.split('~',expand = True)
-PIRCHE[["A_2", "C_2", "B_2", "DRB3_2", "DRB1_2", "DQA1_2", "DQB1_2", "DPA1_2", "DPB1_2"]] = PIRCHE.HAPPAIR_2.str.split('~',expand = True)
+PIRCHE[["A_1", "C_1", "B_1", "DRB345_1", "DRB1_1", "DQA1_1", "DQB1_1", "DPA1_1", "DPB1_1"]] = PIRCHE.HAPPAIR_1.str.split('~',expand = True)
+PIRCHE[["A_2", "C_2", "B_2", "DRB345_2", "DRB1_2", "DQA1_2", "DQB1_2", "DPA1_2", "DPB1_2"]] = PIRCHE.HAPPAIR_2.str.split('~',expand = True)
 
-
+# 5-locus version
 # Drop columns we don't need for PIRCHE
 # PIRCHE does not need: DRB3, DQA1, DPA1, and DPB1
 # Only columns you need: PX_ID, A_1, C_1, B_1, DRB1_1, DQB1_1, A_2, C_2, B_2, DRB1_2, DQB1_2
-PIRCHE = PIRCHE.drop(columns=['HAPPAIRS', 'HAPPAIR_1', 'HAPPAIR_2', 'DRB3_1', 'DQA1_1', 'DPA1_1', 'DPB1_1', 'DRB3_2', 'DQA1_2', 'DPA1_2', 'DPB1_2'])
-PIRCHE = PIRCHE[:-1]  # need to drop the last set of commas
-print(PIRCHE.head())
+PIRCHE_5LOC = PIRCHE
+PIRCHE_5LOC = PIRCHE_5LOC.drop(columns=['HAPPAIRS', 'HAPPAIR_1', 'HAPPAIR_2', 'DRB345_1', 'DQA1_1', 'DPA1_1', 'DPB1_1', 'DRB345_2', 'DQA1_2', 'DPA1_2', 'DPB1_2'])
+PIRCHE_5LOC = PIRCHE_5LOC[:-1]  # need to drop the last set of commas
+print(PIRCHE_5LOC.head())
+
+# drop HAPPAIR columns for 9-locus version
+PIRCHE_9LOC = PIRCHE
+PIRCHE_9LOC = PIRCHE_9LOC.drop(columns=['HAPPAIRS', 'HAPPAIR_1', 'HAPPAIR_2'])
+PIRCHE_9LOC = PIRCHE_9LOC[:-1]  # need to drop the last set of commas
+print(PIRCHE_9LOC.head())
 
 
 # Go from DataFrame to PIRCHE format CSV
-PIRCHE.to_csv('impute_srtr_priche.csv', header=False, index=False)
+PIRCHE_5LOC.to_csv('impute_srtr_pirche_5loc.csv', header=False, index=False)
+PIRCHE_9LOC.to_csv('impute_srtr_pirche_9loc.csv', header=False, index=False)
 
