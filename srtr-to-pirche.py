@@ -26,8 +26,8 @@ def weighted_choice(seq, weights):
 
 
 # Open up file
-pop = ['NAM']
-# pop = ['AFA','API','CAU','HIS','NAM','UNK']
+# pop = ['NAM']
+pop = ['AFA','API','CAU','HIS','NAM','UNK']
 
 SRTR = pd.DataFrame()
 for pops in pop:
@@ -62,7 +62,7 @@ RECIP = SRTR[(SRTR['PX_ID'].str.startswith('R'))]
 # Create a dictionary of pair IDs (without the character)
 #        Output the pairs
 id_index = SRTR['PX_ID'].str.split("[DR]", expand= True)
-print('Counted Values for Each ID: ', id_index.value_counts())
+# print('Counted Values for Each ID: ', id_index.value_counts())
 id_list = pd.Series(id_index[1]).drop_duplicates().to_list()
 
 id_total = {}
