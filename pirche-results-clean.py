@@ -45,22 +45,22 @@ pop_info.PX_ID = pop_info.PX_ID.astype(str)
 
 can_pop = pop_info[(pop_info['PX_ID'].isin(id_list))]
 can_pop = can_pop.drop(columns=['DON_RACE'])
-can_pop.rename(columns={'CAN_RACE': 'RACE'}, inplace=True)
-can_pop['PX_ID'] = "R" + can_pop['PX_ID']
+can_pop['PX_ID'] = "D" + can_pop['PX_ID']            # This will have all the information onto the Donor row as it appears on the CSV
+
 don_pop = pop_info[(pop_info['PX_ID'].isin(id_list))]
 don_pop = don_pop.drop(columns=['CAN_RACE'])
-don_pop.rename(columns={'DON_RACE': 'RACE'}, inplace=True)
 don_pop['PX_ID'] = "D" + don_pop['PX_ID']
 
 
-merge_pop = pd.concat([can_pop, don_pop], ignore_index=True)
+merge_pop = pd.merge(can_pop, don_pop, how='outer', on='PX_ID')
 print(merge_pop.head())
 
 PIRCHE_pop = pd.merge(PIRCHE_ids, merge_pop, how='outer', on='PX_ID')
 PIRCHE_pop.drop(columns=['PX_ID'])
 print(PIRCHE_pop.head())
 
-clean_file.insert(1, 'RACE', PIRCHE_pop.loc[:, 'RACE'])
+clean_file.insert(1, 'CAN_RACE', PIRCHE_pop.loc[:, 'CAN_RACE'])
+clean_file.insert(2, 'DON_RACE', PIRCHE_pop.loc[:, 'DON_RACE'])
 print(clean_file.head())
 
 clean_file.to_csv('clean_pirche100_pops.csv', index=False)

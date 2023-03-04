@@ -68,17 +68,17 @@ head(molecule)
 risk_category_list <- molecule %>% dplyr::select("PIRCHE_II", "PIRCHE_II_promiscuity_corrected")
 
 
-table(molecule['RACE'])
+table(molecule['CAN_RACE'])
 
 # Bar plot of distribution of eplet mismatch counts for DR and for DQ.
-Drc <- molecule %>% dplyr::select("PX_ID", "RACE", "DRB1_Originated_Epitopes_count")
+Drc <- molecule %>% dplyr::select("PX_ID", "CAN_RACE", "DRB1_Originated_Epitopes_count")
 # Drc$DR = rowSums(cbind(Drc$DRB1_1_Originated_Epitopes_count, Drc$DRB1_2_Originated_Epitopes_count), na.rm = TRUE) 
 # Drc = Drc[,!(names(Drc) %in% c("DRB1_1_Originated_Epitopes_count","DRB1_2_Originated_Epitopes_count"))]
 Drc$loci <- "DR"
 names(Drc)[3] <- "mm_cnt"
 
 
-DQc <- molecule %>% dplyr::select("PX_ID", "RACE", "DQB1_Originated_Epitopes_count")
+DQc <- molecule %>% dplyr::select("PX_ID", "CAN_RACE", "DQB1_Originated_Epitopes_count")
 # DQc$DQ = rowSums(cbind(DQc$DQB1_1_Originated_Epitopes_count, DQc$DQB1_2_Originated_Epitopes_count), na.rm = TRUE)
 # DQc = subset(DQc, select = -c(DQB1_1_Originated_Epitopes_count, DQB1_2_Originated_Epitopes_count))
 DQc$loci <- "DQ"
@@ -90,7 +90,7 @@ DrDq <- rbind(Drc, DQc)
 
 #barbell plot
 DrDq %>% 
-  ggplot(aes(x=RACE,
+  ggplot(aes(x=CAN_RACE,
              y=mm_cnt,
              color=loci))+
   geom_boxplot(lwd=1)+
