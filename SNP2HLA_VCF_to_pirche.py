@@ -1,12 +1,14 @@
 import sys
 import pandas
 import gzip
+from collections import defaultdict
 
 vcf_filename = "./SNP2HLA_Imputation/Penn.PTI/chr6.dose.vcf.gz"
 # vcf_df = pandas.read_csv(vcf_filename,delimiter='\t',compression="gzip")
 
 sample_IDs = []
-sample_ID_HLA_geno_A = {} # store the HLA allele-level genotype for the A locus - for key "05-01308_05-01308" assign a value of "A*01:01+A*11:01"
+loci_ID = ['A', 'C', 'B', 'DRB1', 'DQA1', 'DQB1', 'DPA1', 'DPB1']
+sample_ID_HLA_geno = defaultdict(lambda: defaultdict(dict)) # store the HLA allele-level genotype for all locus
 with gzip.open(vcf_filename, 'rt') as file:
     line_index = 0
     for line in file:
@@ -19,7 +21,7 @@ with gzip.open(vcf_filename, 'rt') as file:
             fields = line.strip().split('\t')
             print ("Number of columns: " + str(len(fields)))
             # print (line)
-            for x in range(9,1163):
+            for x in range(9, len(fields)):   # 896 for PMBB, 1163 for UPenn
                 print (x)
                 print (fields[x])
                 sample_IDs.append(str(fields[x]))
@@ -61,10 +63,10 @@ with gzip.open(vcf_filename, 'rt') as file:
         # print (id)
 
 
-        if (hla_locus != "A"):
-            continue
+        # if (hla_locus != "A"):
+        #    continue
         # print (hla_locus)
-        print (hla_specificity)
+        # print (hla_specificity)
 
         ref = fields[3]  # nucleotide for major allele e.g. A
         alt = fields[4]  # nucleotide for minor allele e.g. T
@@ -86,9 +88,9 @@ with gzip.open(vcf_filename, 'rt') as file:
         # print (format)
 
         # genotype is indexes 9 through 1162 - sample IDs are in the header row
-        genotype_dict = {}
-        genotype_GT_dict = {}
-        for i in range(9,1163):
+        enotype_dict = defaultdict(lambda: defaultdict(dict))
+        genotype_GT_dict = defaultdict(lambda: defaultdict(dict))
+        for i in range(9, len(fields)):
             sample_ID_index = i - 9
             sample_ID = sample_IDs[sample_ID_index]
             # print (sample_ID)
@@ -97,31 +99,36 @@ with gzip.open(vcf_filename, 'rt') as file:
             # TBD - determine what the genotype string definition is - look at SNP2HLA documentation
             (allele_presence_geno,float_unknown_1,float_unknown2) = geno_GT.split(":")
             (allele1_presence,allele2_presence) = allele_presence_geno.split("|")
-            if (allele_presence_geno != "0|0"):  # only look at genotypes where the allele was present - either position can be positive
-                print ("Sample ID: " + sample_ID)
-                print ("GT_1: " + allele1_presence)
-                if (allele1_presence == "1"):
-                    print (hla_locus)
-                    if (hla_locus == "A"):
-                        if (sample_ID not in sample_ID_HLA_geno_A): # put in allele if no previous allele
-                            sample_ID_HLA_geno_A[sample_ID] = hla_specificity
-                        else: # else make into a genotype
-                            sample_ID_HLA_geno_A[sample_ID] = sample_ID_HLA_geno_A[sample_ID] + "+" + hla_specificity
-                        print ("A locus type present 1")
-                        print (sample_ID_HLA_geno_A)            
-                print ("GT_2: " + allele2_presence)
-                if (allele2_presence == "1"):
-                    if (hla_locus == "A"):
-                        if (sample_ID not in sample_ID_HLA_geno_A): # put in allele if no previous allele
-                            sample_ID_HLA_geno_A[sample_ID] = hla_specificity
-                        else: # else make into a genotype
-                            sample_ID_HLA_geno_A[sample_ID] = sample_ID_HLA_geno_A[sample_ID] + "+" + hla_specificity
-                        print ("A locus type present 2")
-                        print (sample_ID_HLA_geno_A)
-                # print ("GT: " + geno_GT)    # 1|0:1.000:1.000    0|1:0.949:0.000
-                # print ("DS: " + geno_DS)
-            genotype_dict[sample_ID] = genotype
-            genotype_GT_dict[sample_ID] = geno_GT
+                        for loci in loci_ID:
+                if hla_locus != loci:
+                    continue
+                # print ("This is the loci:", loci)
+                if allele_presence_geno != "0|0":  # only look at genotypes where the allele was present - either position can be positive
+                    print("Sample ID: " + sample_ID)
+                    print("GT_1: " + allele1_presence)
+                    if allele1_presence == "1":
+                        print(hla_locus)
+                        if hla_locus == loci:
+                            if loci not in sample_ID_HLA_geno[sample_ID]:  # put in allele if no previous allele
+                                sample_ID_HLA_geno[sample_ID][loci] = hla_specificity
+                            else:  # else make into a genotype
+                                sample_ID_HLA_geno[sample_ID][loci] = str(sample_ID_HLA_geno[sample_ID][loci]) + "+" + hla_specificity
+                            print("A locus type present 1")
+                            # print(sample_ID_HLA_geno)
+                    print("GT_2: " + allele2_presence)
+                    if allele2_presence == "1":
+                        if hla_locus == loci:
+                            if loci not in sample_ID_HLA_geno[sample_ID]:  # put in allele if no previous allele
+                                sample_ID_HLA_geno[sample_ID][loci] = hla_specificity
+                            else:  # else make into a genotype
+                                sample_ID_HLA_geno[sample_ID][loci] = str(sample_ID_HLA_geno[sample_ID][loci]) + "+" + hla_specificity
+                            print("A locus type present 2")
+                            # print(sample_ID_HLA_geno)
+                    print(sample_ID_HLA_geno[sample_ID])
+                    # print ("GT: " + geno_GT)    # 1|0:1.000:1.000    0|1:0.949:0.000
+                    # print ("DS: " + geno_DS)
+            genotype_dict[sample_ID][loci] = genotype
+            genotype_GT_dict[sample_ID][loci] = geno_GT
 
             # print (genotype)
 
@@ -149,7 +156,30 @@ with gzip.open(vcf_filename, 'rt') as file:
         # print ("Line:" + line)
 print (sample_ID_HLA_geno_A)  # should have a HLA genotype for each ID for locus A
 
-# TODO - do a multi-dimensional or nested Python dictionary so you don't need a separate dictionary per locus
+# Make into a dataframe to make it easier to use
+PIRCHE = pd.DataFrame.from_dict(sample_ID_HLA_geno, orient='index')
+
+# the ones with n=1 have missing happairs
+PIRCHE[["A_1", "A_2"]] = PIRCHE.A.str.split('+', expand=True)
+PIRCHE[["C_1", "C_2"]] = PIRCHE.C.str.split('+', n=1, expand=True)
+PIRCHE[["B_1", "B_2"]] = PIRCHE.B.str.split('+', n=1, expand=True)
+PIRCHE[["DRB1_1", "DRB1_2"]] = PIRCHE.DRB1.str.split('+', n=1, expand=True)
+PIRCHE[["DQA1_1", "DQA1_2"]] = PIRCHE.DQA1.str.split('+', n=1, expand=True)
+PIRCHE[["DQB1_1", "DQB1_2"]] = PIRCHE.DQB1.str.split('+', expand=True)
+PIRCHE[["DPA1_1", "DPA1_2"]] = PIRCHE.DPA1.str.split('+', n=1, expand=True)
+PIRCHE[["DPB1_1", "DPB1_2"]] = PIRCHE.DPB1.str.split('+', expand=True)
+
+PIRCHE = PIRCHE.drop(columns=['A', 'C', 'B', 'DRB1', 'DQA1', 'DQB1', 'DPA1', 'DPB1'])   # not needed anymore
+
+# pd.set_option('display.max_columns', None)
+# print(subjHLA.head())
+# pirche_file = pd.read_csv(pirche_filename, sep=',', header=None)
+pairID_filename = './SNP2HLA_Imputation/Penn.PTI/Penn.PTI.DR.pairs.IDs.csv'
+pairID_file = pd.read_csv(pairID_filename, sep=',')
+
+# CSV file
+subjHLA_filename = 'Subj_HLA_' + "PennPTI" + ".csv"
+subjHLA.to_csv(subjHLA_filename, header=False)
 
 # '05-04377_05-04377': 'A*34:02+A*68:02'
 # '06-05177_06-05177': 'A*74:01',  TODO - Understand why there's only one HLA allele here
