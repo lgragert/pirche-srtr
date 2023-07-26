@@ -3,7 +3,8 @@ import pandas as pd
 import gzip
 from collections import defaultdict
 
-vcf_filename = "./SNP2HLA_Imputation/Penn.PTI/chr6.dose.vcf.gz"
+cohort = "Penn.PTI"
+vcf_filename = "./SNP2HLA_Imputation/" + cohort + "/chr6.dose.vcf.gz"
 # vcf_df = pandas.read_csv(vcf_filename,delimiter='\t',compression="gzip")
 
 sample_IDs = []
@@ -178,7 +179,7 @@ PIRCHE = PIRCHE.drop(columns=['A', 'C', 'B', 'DRB1', 'DQA1', 'DQB1', 'DPA1', 'DP
 # pairID_file = pd.read_csv(pairID_filename, sep=',')
 
 # CSV file
-subjHLA_filename = 'Subj_HLA_' + "PennPTI" + ".csv"
+subjHLA_filename = 'Subj_HLA_' + cohort + ".csv"
 PIRCHE.to_csv(subjHLA_filename, header=False)
 
 # '05-04377_05-04377': 'A*34:02+A*68:02'
