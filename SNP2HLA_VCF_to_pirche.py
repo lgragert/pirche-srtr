@@ -1,5 +1,5 @@
 import sys
-import pandas
+import pandas as pd
 import gzip
 from collections import defaultdict
 
@@ -88,7 +88,7 @@ with gzip.open(vcf_filename, 'rt') as file:
         # print (format)
 
         # genotype is indexes 9 through 1162 - sample IDs are in the header row
-        enotype_dict = defaultdict(lambda: defaultdict(dict))
+        genotype_dict = defaultdict(lambda: defaultdict(dict))
         genotype_GT_dict = defaultdict(lambda: defaultdict(dict))
         for i in range(9, len(fields)):
             sample_ID_index = i - 9
@@ -99,7 +99,7 @@ with gzip.open(vcf_filename, 'rt') as file:
             # TBD - determine what the genotype string definition is - look at SNP2HLA documentation
             (allele_presence_geno,float_unknown_1,float_unknown2) = geno_GT.split(":")
             (allele1_presence,allele2_presence) = allele_presence_geno.split("|")
-                        for loci in loci_ID:
+            for loci in loci_ID:
                 if hla_locus != loci:
                     continue
                 # print ("This is the loci:", loci)
@@ -154,7 +154,7 @@ with gzip.open(vcf_filename, 'rt') as file:
 
 
         # print ("Line:" + line)
-print (sample_ID_HLA_geno_A)  # should have a HLA genotype for each ID for locus A
+print (sample_ID_HLA_geno)  # should have a HLA genotype for each ID for locus A
 
 # Make into a dataframe to make it easier to use
 PIRCHE = pd.DataFrame.from_dict(sample_ID_HLA_geno, orient='index')
@@ -174,12 +174,12 @@ PIRCHE = PIRCHE.drop(columns=['A', 'C', 'B', 'DRB1', 'DQA1', 'DQB1', 'DPA1', 'DP
 # pd.set_option('display.max_columns', None)
 # print(subjHLA.head())
 # pirche_file = pd.read_csv(pirche_filename, sep=',', header=None)
-pairID_filename = './SNP2HLA_Imputation/Penn.PTI/Penn.PTI.DR.pairs.IDs.csv'
-pairID_file = pd.read_csv(pairID_filename, sep=',')
+# pairID_filename = './SNP2HLA_Imputation/Penn.PTI/Penn.PTI.DR.pairs.IDs.csv'
+# pairID_file = pd.read_csv(pairID_filename, sep=',')
 
 # CSV file
 subjHLA_filename = 'Subj_HLA_' + "PennPTI" + ".csv"
-subjHLA.to_csv(subjHLA_filename, header=False)
+PIRCHE.to_csv(subjHLA_filename, header=False)
 
 # '05-04377_05-04377': 'A*34:02+A*68:02'
 # '06-05177_06-05177': 'A*74:01',  TODO - Understand why there's only one HLA allele here
