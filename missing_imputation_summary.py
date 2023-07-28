@@ -60,7 +60,7 @@ missing_extra.columns = ['Missing HLA', 'Extra HLA']
 # Sum of missing more than one loci
 more_missing =str(len(subjHLA.loc[subjHLA.isnull().sum(1)>1])) + "/" + str(total)
 more_missing_perc = format(100 * len(subjHLA.loc[subjHLA.isnull().sum(1)>1]) /  total, '.2f')
-missing_print = "Total PX_ID with >1 Loci Missing: " + more_missing + " (" + more_missing_perc + "%)"
+missing_print = "Total with >1 Loci Missing: " + more_missing + " (" + more_missing_perc + "%)"
 print(missing_print)
 
 missing_extra.to_csv("Missing_HLA_in_" + cohort + ".csv", index=False)
